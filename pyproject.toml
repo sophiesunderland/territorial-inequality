@@ -38,4 +38,4 @@ no_implicit_optional = true
 
 [tool.pytest.ini_options]
 addopts = "-ra"
-testpaths = ["mypackage/tests"]
+testpaths = ["territorial_inequality/tests"]
