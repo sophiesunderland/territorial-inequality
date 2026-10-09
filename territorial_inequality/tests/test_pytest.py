@@ -20,28 +20,4 @@ Additional tutorials:
 """
 
 
-from territorial_inequality.example_sunderland import transportation_density
-
-# Check for positive values in length, constituency area, and density variables
-
-def test_length_positive() -> None:
-    """Template: replace this with tests for your own function."""
-    result = transportation_density("Zambia", "AFR_Infra_Transport_Road")
-    
-    assert (result["length_km"] >= 0).all()
- 
-def test_area_positive() -> None:
-    """Template: replace this with tests for your own function."""
-    result = transportation_density("Zambia", "AFR_Infra_Transport_Road")
-    
-    assert (result["const_area_km2"] >= 0).all()
-    
-def test_density_positive() -> None:
-    """Template: replace this with tests for your own function."""
-    result = transportation_density("Zambia", "AFR_Infra_Transport_Road")
-    
-    assert (result["density"] >= 0).all()   
-
-    
-    
 

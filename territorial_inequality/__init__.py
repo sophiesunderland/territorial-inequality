@@ -9,10 +9,10 @@ Overview:
 
 from importlib.metadata import PackageNotFoundError, version
 
-from . import example as _api
-from .example import *  # noqa: F401,F403
+#from . import example as _api
+##from .example import *  # noqa: F401,F403
 
-__all__ = list(_api.__all__)
+#__all__ = list(_api.__all__)
 
 # Optional: expose package version from installed metadata.
 # When running directly from source, metadata may not exist yet.
@@ -26,14 +26,14 @@ except PackageNotFoundError:
 # ---------------------------------------------------------------------------
 # 1) Grouped imports from multiple modules:
 # Learn more: https://realpython.com/python-modules-packages/
-# from territorial_inequality.algebra import solve_linear
-# from territorial_inequality.stats import mean_center
+# from mypackage.algebra import solve_linear
+# from mypackage.stats import mean_center
 # __all__.extend(["solve_linear", "mean_center"])
 
 # 2) Re-export everything from selected submodules using a loop:
 # Learn more: https://docs.python.org/3/reference/import.html
-# from territorial_inequality import algebra as _algebra
-# from territorial_inequality import stats as _stats
+# from mypackage import algebra as _algebra
+# from mypackage import stats as _stats
 #
 # for _module in (_algebra, _stats):
 #     __all__.extend(getattr(_module, "__all__", []))
@@ -42,6 +42,6 @@ except PackageNotFoundError:
 # Learn more: https://peps.python.org/pep-0562/
 # def __getattr__(name: str):
 #     if name == "slow_model":
-#         from territorial_inequality.models import slow_model
+#         from mypackage.models import slow_model
 #         return slow_model
 #     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
