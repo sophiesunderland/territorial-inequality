@@ -19,5 +19,29 @@ Additional tutorials:
 - Python testing intro (Real Python): https://realpython.com/python-testing/
 """
 
+import pytest
 
+'''Test the fix country name code line.'''
+@pytest.mark.parametrize(
+    ("country", "expected"),
+    [
+        ("Zambia", "Zambia"),
+        ("Burkina Faso", "BurkinaFaso"),
+        ("South Africa", "SouthAfrica"),
+        ("  South Africa  ", "SouthAfrica"),
+    ],
+)
+def test_country_filename_formatting(country, expected):
+    country_file = country.replace(" ", "")
+    assert country_file == expected
+    
+
+'''Check that density is calculated correctly'''
+def test_density_calculation():
+    length_km = 100
+    area_km2 = 50
+
+    density = length_km / area_km2
+
+    assert density == pytest.approx(2.0)
 

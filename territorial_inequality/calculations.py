@@ -1,5 +1,6 @@
 import geopandas as gpd
 from pathlib import Path
+from matplotlib import pyplot as plt
 
 def load_data():
     """Return the path to the main GIS database."""
@@ -64,15 +65,17 @@ def transportation_density(country = "", layer = ""):
     if layer == "AFR_Infra_Transport_Road":
         var = "road"
     elif layer == "AFR_Infra_Transport_Rail":
-            var = "rail"
+        var = "rail"
     elif layer == "AFR_Infra_Power_Transmission":
-            var = "power"
+        var = "pwr"
+    elif layer != "AFR_Infra_Transport_Road" and layer != "AFR_Infra_Transport_Rail" and layer != "AFR_Infra_Power_Transmission":
+        return "Layer not recognized. Please use one of the following: AFR_Infra_Transport_Road, AFR_Infra_Transport_Rail, AFR_Infra_Power_Transmission"
             
     # handle countries with spaces in their names by joining spaces to find the correct shapefile
     country_file = country.replace(" ", "")
         
     # create output directory for the current country if it doesn't exist
-    output_dir = Path(".")/"outputs"/var/country
+    output_dir = Path(".")/"outputs"/"density"/country
     output_dir.mkdir(parents=True, exist_ok=True)
         
     # set output file 
@@ -105,137 +108,80 @@ def transportation_density(country = "", layer = ""):
 
     # left join constituency areas with road lengths to get a combined dataframe
     country_combined = country_sf_proj.merge(intersection_sub, on="Cons_name", how="left")
-    # for constituencies with no infrastructure, fill in 0 for length and density
+    # for constituencies with no infrastructure, fill in 0 for density
     country_combined[var + "_km"] = (country_combined[var + "_km"].fillna(0))
     # calculate density
-    country_combined[var + "_density"] = (country_combined[var + "_km"] / country_combined["const_area_km2"])
+    country_combined[var + "_den"] = (country_combined[var + "_km"] / country_combined["const_area_km2"])
     
     # add necessary columns to original country shapefile        
     country_sf = country_sf.merge(
-    country_combined[["Cons_name", var + "_km", var + "_density"]], on="Cons_name", how="left")
+    country_combined[["Cons_name", var + "_km", var + "_den"]], on="Cons_name", how="left")
     
     # save to the output shapefile
     country_sf.to_file(output_file) 
     print(f"Finished processing {country} for layer {layer}")
 
-def density_all(layer = ""):
-    """Calculate infrastructure density for every constituency in every country."""
+def summarize_distribution(country = "", var = ""):
+    """Summarize the distribution of the selected transportation layer for a given country."""
     
-    # get path to main database
-    df_main = load_data()
+    # get path to country output shapefile
+    country_file = country.replace(" ", "")
     
-    # get path to layer 
-    df_all = gpd.read_file(df_main, layer = layer)
+    country_sf = gpd.read_file(Path(".")/"outputs"/"density"/country/f"{country_file}_Constituencies.shp")
     
-    # identify the variable name based on the layer
-    var = ""
-    if layer == "AFR_Infra_Transport_Road":
-        var = "road"
-    elif layer == "AFR_Infra_Transport_Rail":
-            var = "rail"
-    elif layer == "AFR_Infra_Power_Transmission":
-            var = "power"
-    
-    # loop over all countries in main dataset 
-    for country in df_all["Country"].dropna().unique():
+    # subset to the selected variable
+    if var == "road":
+        country_var = country_sf[["road_km", "road_den"]]
+    elif var == "rail":
+        country_var = country_sf[["rail_km", "rail_den"]]
+    elif var == "pwr":
+        country_var = country_sf[["pwr_km", "pwr_den"]]
         
-        # handle countries with spaces in their names by joining spaces to find the correct shapefile
-        country_file = country.replace(" ", "")
-        
-        # create output directory for the current country if it doesn't exist
-        output_dir = Path(".")/"outputs"/"density"/country
-        output_dir.mkdir(parents=True, exist_ok=True)
-        
-        # set output file 
-        output_file = output_dir/f"{country_file}_Constituencies.shp"
-        # set to only create once per country
-        if output_file.exists():
-             country_sf = gpd.read_file(output_file)
-        else:
-            country_sf = gpd.read_file(Path(".")/"Shapefiles"/country/f"{country_file}_Constituencies.shp")
-    
-        # filter for the current country
-        df_sub = df_all[df_all["Country"] == country]
-        
-        # project the layer and shapefile to same projected coordinate system for area calculations
-        sub_proj = df_sub.to_crs("ESRI:102022")
-        country_sf_proj = country_sf.to_crs("ESRI:102022")
+    return country_var.describe()
 
-        # intersect layer with constituencies 
-        intersection = gpd.overlay(
-            sub_proj,
-            country_sf_proj,
-            how="intersection")
-        
-        # create length variable by summing the length of the selected layer/variable in each constituency
-        intersection[var] = intersection.geometry.length.groupby(intersection["Cons_name"]).transform("sum")
-        # transform from m into km
-        intersection[var + "_km"] = intersection[var] / 1000
-        # select road length and constituency name columns
-        intersection_sub = intersection[[var, var + "_km", "Cons_name"]]
-        
-        # calculate constituency areas in km^2
-        country_sf_proj["const_area_km2"] = country_sf_proj.geometry.area / 1_000_000
-       
-         # left join constituency areas with lengths to get a combined dataframe
-        country_combined = country_sf_proj.merge(intersection_sub, on="Cons_name", how="left")
-         # for constituencies with no infrastructure, fill in 0 for length and density
-        country_combined[var + "_km"] = (country_combined[var + "_km"].fillna(0))
-        # calculate density
-        country_combined[var + "_density"] = (country_combined[var + "_km"] / country_combined["const_area_km2"])
-        
-        # add necessary columns to original country shapefile        
-        country_sf = country_sf.merge(
-        country_combined[["Cons_name", var + "_km", var + "_density"]], on="Cons_name", how="left")
-        
-        # save to the output shapefile
-        country_sf.to_file(output_file) 
-        print(f"Finished processing {country} for layer {layer}")
-        
-        
-def count_all(layer = " "):
-    # Loop over all countries in main dataset 
-    for country in df_all["Country"].dropna().unique():
-        # create a GeoDataFrame for the selected layer
-        df_sub = gpd.read_file(df_main, layer = layer)
-        # filter for the current country
-        df_sub = df_sub[df_sub["Country"] == country]
-        # project the layer to a projected coordinate system for area calculations
-        sub_proj = df_sub.to_crs("ESRI:102022")
-        
-        # load shapefile for current country and project to the same coordinate system
-        country_sf = gpd.read_file(f"/Users/sophiesunderland/Desktop/CMSE802F26/Shapefiles/Shapefiles/{country}/{country}_Constituencies.shp")
-        country_sf_proj = country_sf.to_crs("ESRI:102022")
+def plot_density(country = "", var = ""):
+    """Plot the density of the selected transportation layer for a given country."""
+    
+        # get path to country output shapefile
+    country_file = country.replace(" ", "")
+    
+    country_sf = gpd.read_file(Path(".")/"outputs"/"density"/country/f"{country_file}_Constituencies.shp")
+    
+    # select the density column
+    columns = {
+        "road": "road_den",
+        "rail": "rail_den",
+        "pwr": "pwr_den", 
+        }
 
-        # intersect layer with constituencies 
-        intersection = gpd.overlay(
-            sub_proj,
-            country_sf_proj,
-            how="intersection")
+    column = columns[var]
 
-        # identify the variable name based on the layer
-        var = ""
-        if layer == "AFR_Mineral_Facilities":
-            var = "facilities"
-        elif layer == "AFR_Mineral_Deposits":
-            var = "deposits"
-        elif layer == "AFR_Infra_Power_Stations":
-            var = "stations"
-        elif layer == "AFR_Infra_Transport_Ports":
-            var = "ports"
+    ax = country_sf.plot(
+        column=column,
+        scheme="quantiles",
+        k=5,
+        legend=True,
+        figsize=(10, 8),
+        edgecolor="black",
+        linewidth=0.3,
+        missing_kwds={"color": "lightgrey", "label": "Missing data"})
 
-        # create count variable by summing the number of points in the selected layer/variable in each constituenc
-        intersection[var] = intersection.groupby(intersection["Cons_name"]).size().reset_index(name=var)
-        # select count and constituency name columns
-        intersection_sub = intersection[[var, "Cons_name"]]
-       
-        # left join constituency areas with lengths to get a combined dataframe
-        country_combined = country_sf_proj.merge(intersection_sub, on="Cons_name", how="left")
+    ax.set_title(f"{var.capitalize()} density in {country}")
+    ax.set_axis_off()
+    
+    # save the plot to the output directory
+    output_dir = Path(".")/"outputs"/"plots"/country
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir/f"{country_file}_{var}_density_plot.png"
+    plt.savefig(output_file)
+    print(f"Plot saved to {output_file}")
+    
+    plt.show()
+    
+    
+    
+    
+
         
-        # add necessary columns to original country shapefile        
-        country_sf = country_sf.merge(
-        country_combined[["Cons_name", var]],on="Cons_name",how="left")
-        
-        # save to the original country shapefile
-        country_sf.to_file(f"/Users/sophiesunderland/Desktop/CMSE802F26/Shapefiles/Shapefiles/{country}/{country}_Constituencies.shp")
-        print(f"Finished processing {country} for layer {layer}")
+    
+
