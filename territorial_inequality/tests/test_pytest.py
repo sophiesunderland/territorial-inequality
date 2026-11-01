@@ -20,6 +20,9 @@ Additional tutorials:
 """
 
 import pytest
+import geopandas as gpd
+import pytest
+from pathlib import Path
 
 '''Test the fix country name code line.'''
 @pytest.mark.parametrize(
@@ -44,4 +47,16 @@ def test_density_calculation():
     density = length_km / area_km2
 
     assert density == pytest.approx(2.0)
+    
+"""Check that constituency columns are not duplicated"""
+@pytest.mark.parametrize(
+    "country", ["Zimbabwe", "Zambia", "Ghana"])
+def test_no_duplicate_constituency_names(country):
+    country_file = country.replace(" ", "")
+
+    country_sf = gpd.read_file(
+        Path(".") / "outputs" / "density" / country / f"{country_file}_Constituencies.shp")
+
+    assert not country_sf["Cons_name"].duplicated().any(), (f"Duplicate constituency names found in {country}")
+    
 

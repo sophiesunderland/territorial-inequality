@@ -80,45 +80,71 @@ def transportation_density(country = "", layer = ""):
         
     # set output file 
     output_file = output_dir/f"{country_file}_Constituencies.shp"
+    
     # set to only create once per country
     if output_file.exists():
+        print("reading in existing output file", flush=True)
         country_sf = gpd.read_file(output_file)
     else:
         country_sf = gpd.read_file(Path(".")/"Shapefiles"/country/f"{country_file}_Constituencies.shp")
+    
+    #print("file read in successfully", flush=True)
     
     # project the roads to a projected coordinate system for area calculations
     trans_proj = country_layer.to_crs("ESRI:102022")
     country_sf_proj = country_sf.to_crs("ESRI:102022")
 
+    #print("coordinate system projected successfully", flush=True)
     # intersect roads with constituencies 
     intersection = gpd.overlay(
         trans_proj,
         country_sf_proj,
         how="intersection")
+    
+    #print("intersection completed successfully", flush=True)
 
     # create length variable by summing the length of the selected layer/variable in each constituency
     intersection[var] = intersection.geometry.length.groupby(intersection["Cons_name"]).transform("sum")
     # transform from m into km
     intersection[var + "_km"] = intersection[var] / 1000
     # select road length and constituency name columns
-    intersection_sub = intersection[[var, var + "_km", "Cons_name"]]
+    intersection_sub = intersection[[var, var + "_km", "Cons_name"]].drop_duplicates(subset="Cons_name")
+    #intersection_sub = intersection[[var, var + "_km", "Cons_name"]]
 
     # calculate constituency areas in km^2
     country_sf_proj["const_area_km2"] = country_sf_proj.geometry.area / 1_000_000
 
     # left join constituency areas with road lengths to get a combined dataframe
-    country_combined = country_sf_proj.merge(intersection_sub, on="Cons_name", how="left")
+    country_combined = country_sf_proj.merge(intersection_sub, on="Cons_name", how="left", validate ="m:1")
     # for constituencies with no infrastructure, fill in 0 for density
     country_combined[var + "_km"] = (country_combined[var + "_km"].fillna(0))
     # calculate density
     country_combined[var + "_den"] = (country_combined[var + "_km"] / country_combined["const_area_km2"])
     
+    #print("density calculated successfully", flush=True)
+    
     # add necessary columns to original country shapefile        
     country_sf = country_sf.merge(
     country_combined[["Cons_name", var + "_km", var + "_den"]], on="Cons_name", how="left")
     
+    #print("columns added successfully", flush=True)
+    
+    #print("Rows:", len(country_sf), flush=True)
+    #print("Columns:", country_sf.columns.tolist(), flush=True)
+    #print("Memory (MB):",
+      #country_sf.memory_usage(deep=True).sum() / 1024**2,
+      #flush=True)
+    #print("CRS:", country_sf.crs, flush=True)
+    #print("Geometry types:", country_sf.geom_type.value_counts().to_dict(),
+      #flush=True)
+    #print("Null geometries:", country_sf.geometry.isna().sum(), flush=True)
+    #print("Invalid geometries:",
+      #(~country_sf.geometry.is_valid).sum(), flush=True)
+    #print("Duplicate constituency names:",
+      #country_sf["Cons_name"].duplicated().sum(), flush=True)
+    
     # save to the output shapefile
-    country_sf.to_file(output_file) 
+    country_sf.to_file(output_file, engine="pyogrio") 
     print(f"Finished processing {country} for layer {layer}")
 
 def summarize_distribution(country = "", var = ""):
@@ -151,8 +177,7 @@ def plot_density(country = "", var = ""):
     columns = {
         "road": "road_den",
         "rail": "rail_den",
-        "pwr": "pwr_den", 
-        }
+        "pwr": "pwr_den",}
 
     column = columns[var]
 
@@ -177,6 +202,82 @@ def plot_density(country = "", var = ""):
     print(f"Plot saved to {output_file}")
     
     plt.show()
+    
+def compare_density(country = "", var1 = "", var2 = ""):
+    """Compare the density of two transportation layers for a given country."""
+    
+    # get path to country output shapefile
+    country_file = country.replace(" ", "")
+    
+    country_sf = gpd.read_file(Path(".")/"outputs"/"density"/country/f"{country_file}_Constituencies.shp")
+    
+    # select the density columns
+    columns = {
+        "road": "road_den",
+        "rail": "rail_den",
+        "pwr": "pwr_den", 
+        }
+
+    column1 = columns[var1]
+    column2 = columns[var2]
+    
+    # compare the two density columns in a scatter plot
+    ax = country_sf.plot.scatter(
+        x=column1,
+        y=column2,
+        alpha=0.5,
+        figsize=(10, 8))
+    
+    
+    ax.set_title(f"Comparison of {var1} and {var2} density in {country}")
+    ax.set_xlabel(f"{var1.capitalize()} density")
+    ax.set_ylabel(f"{var2.capitalize()} density")
+    
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    
+    # save the plot to the output directory
+    output_dir = Path(".")/"outputs"/"plots"/country
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_file = output_dir/f"{country_file}_{var1}_{var2}_density_plot.png"
+    plt.savefig(output_file)
+    print(f"Plot saved to {output_file}")
+    
+    plt.show()
+    
+def compare_density_quant(country="", var1="", var2=""):
+    """Compare the density of two transportation layers for a given country with quantative measures."""
+
+    # get path to country output shapefile
+    country_file = country.replace(" ", "")
+    country_sf = gpd.read_file(
+        Path(".") / "outputs" / "density" / country / f"{country_file}_Constituencies.shp")
+
+    # select the density columns
+    columns = {
+        "road": "road_den",
+        "rail": "rail_den",
+        "pwr": "pwr_den",}
+
+    column1 = columns[var1]
+    column2 = columns[var2]
+
+    # select relevant columns
+    comparison = country_sf[["Cons_name", column1, column2]].copy()
+
+    # remove duplicate constituency records
+    comparison = comparison.drop_duplicates(subset="Cons_name")
+
+    # calculate difference between the two density measures
+    comparison["density_diff"] = comparison[column1] - comparison[column2]
+
+    # calculate ratio between the two density measures
+    comparison["density_ratio"] = (
+        comparison[column1] /
+        comparison[column2].replace(0, float("nan")))
+
+    return comparison
+
     
     
     

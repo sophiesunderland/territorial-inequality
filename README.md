@@ -75,6 +75,8 @@ roads = gpd.read_file(gdb_dat, layer="AFR_Infra_Transport_Road")
 - Merge the measures with the corresponding constituency shapefile.
 - Return a new shapefile for the specified country.
 
+3. After calculating density measures, these measures can be compared using the `compare_density` and `compare_density_quant` functions to produce comparison plots and measures, respectively, between two transportation layers.
+
 Open [Example.ipynb](Example.ipynb) for a guided notebook walkthrough.
 
 As the user works along, tests can be run to confirm the code is working as expected. Use the following to confirm whether calculations are behaving as expected:

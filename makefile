@@ -21,9 +21,11 @@ help:
 	@echo "  make clean      Remove generated files"
 	@echo ""
 
+#   conda env create --prefix=./.envs -f environment.yml || \
+#	conda env update --prefix=./.envs -f environment.yml --prune
 init:
-	conda env create --prefix=./.envs -f environment.yml || \
-	conda env update --prefix=./.envs -f environment.yml --prune
+	conda env create -f environment.yml || \
+	conda env update -n territorial-inequality -f environment.yml --prune
 
 lint:
 	ruff check .
