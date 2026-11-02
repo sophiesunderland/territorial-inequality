@@ -7,3 +7,8 @@ The most relevant skills to my project have been creating and importing my own m
 From Module 2, I learned how to use symbolic tools in analytical models. I have used python to write numerical models, but not symbolic models. I like the in-class activities designed to help us think about model behavior, model fit, and parameters. This relates to the work I do in my own field, so it was intuitive and I felt comfortable working through the different activities. I do not plan to implement anything from this module into my project because I am not estimating any kind of model. 
 
 While not directly related to Module 2, I have started to use environments and project directories in all of my research projects, including projects outside of this class. This has allowed me to keep my code organized and to share code with colleagues easily. 
+
+## Module 3
+From Module 3, I learned about connecting physical assumptions to modeling behavior. My project is very physical-focus and it was interesting to see other applications of physical modeling. Given my discipline, some of the approaches (e.g. waves) are not as relevant, but other models, such as SIR, can be adapted to political science questions. 
+
+A core theme to emerge from this module was understanding the assumptions that are going into the model you create and the importance of parameters. While I'm not necessarily modeling anything, it was important to think about the best way to measure road and rail length in each constituency. A simple length measure would make comparison more difficult, whereas the density measure I decided on standardizes comparisons both within and between countries.
