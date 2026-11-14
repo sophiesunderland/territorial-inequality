@@ -77,7 +77,19 @@ roads = gpd.read_file(gdb_dat, layer="AFR_Infra_Transport_Road")
 
 3. After calculating density measures, these measures can be compared using the `compare_density` and `compare_density_quant` functions to produce comparison plots and measures, respectively, between two transportation layers.
 
-Open [Example.ipynb](Example.ipynb) for a guided notebook walkthrough.
+4. Alternatively, use `density_and_plot` to calculate and plot a given infrastructure measure for a single country.
+
+The user can work in one of two ways:
+
+1. Automated approach to calculate density measures or density measures and corresponding country plot. 
+
+```bash
+python run_density.py --country = COUNTRY --measure = INFRASTRUCTURE VARIABLE
+
+python run_density_and_plot.py --country = COUNTRY --measure = INFRASTRUCTURE VARIABLE
+```
+
+2. Follow [Example.ipynb](Example.ipynb) for a guided notebook walkthrough.
 
 As the user works along, tests can be run to confirm the code is working as expected. Use the following to confirm whether calculations are behaving as expected:
 

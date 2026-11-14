@@ -1,14 +1,19 @@
-## Module 1 
+## Module 1 (Intro to Modeling)
 From Module 1, I learned how to take my code and turn it into reproducible functions. I have written basic functions in the past, but never taken the extra step to save them into scripts and import the scripts as my own modules. This usually means I am running the same code repeatedly whenever I update my analyses. Using modules with my functions within them saves lots of time and keeps the code more organized. I also learned to feel confident using git and Github. I've had an account for many years, but never used Github to store my code because I wasn't sure how to push, pull, fork, and so on from repositories. This means that I usually end up with dozens of code scripts with titles such as "version 2", "version 2.2" etc. and it is hard to identify exactly what is changing between each script and where the most recent script lives. Using Github has made a huge difference in keeping track of changes in my code and keeping it organized.
 
 The most relevant skills to my project have been creating and importing my own modules. The main workflow of my project utilizes pre-defined functions to loop over multiple countries and layers in two separate datasets. Turning the code into a function, and then into a library, allows me to keep these baseline functions in a separate file. I can then import the relevant function depending on the calculation I want to make and preview results in a separate notebook. You can see this workflow in practice in my notebooks. 
 
-## Module 2
+## Module 2 (Analytical Modeling)
 From Module 2, I learned how to use symbolic tools in analytical models. I have used python to write numerical models, but not symbolic models. I like the in-class activities designed to help us think about model behavior, model fit, and parameters. This relates to the work I do in my own field, so it was intuitive and I felt comfortable working through the different activities. I do not plan to implement anything from this module into my project because I am not estimating any kind of model. 
 
 While not directly related to Module 2, I have started to use environments and project directories in all of my research projects, including projects outside of this class. This has allowed me to keep my code organized and to share code with colleagues easily. 
 
-## Module 3
+## Module 3 (Physical Modeling)
 From Module 3, I learned about connecting physical assumptions to modeling behavior. My project is very physical-focus and it was interesting to see other applications of physical modeling. Given my discipline, some of the approaches (e.g. waves) are not as relevant, but other models, such as SIR, can be adapted to political science questions. 
 
 A core theme to emerge from this module was understanding the assumptions that are going into the model you create and the importance of parameters. While I'm not necessarily modeling anything, it was important to think about the best way to measure road and rail length in each constituency. A simple length measure would make comparison more difficult, whereas the density measure I decided on standardizes comparisons both within and between countries.
+
+## Module 4 (Data-Driven Modeling)
+From Module 4, I learned about building predictive models based on observational data. I found this module to be the most interesting so far. I work primarily with observational data, where my goal is to identify correlations or other patterns between variables. It strongly relates to the research I do. I also liked the opportunity to practice more with the HPCC. I have used array to send multiple jobs at the same time, but only for one extra practice. I'm happy to feel increasingly confident as we do more assignments using the HPCC.
+
+For my project specifically, there is a strong data-driven component. I am using observed data to calculate infrastructure measures, and the goal is for these measures to be added into data-driven models to identify patterns between infrastructure and political outcomes. For example, in an applied project, I use road density as a control variable in my analysis of roadblocks and beliefs about state presence in electoral autocracies throughout Africa.

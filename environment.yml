@@ -29,6 +29,7 @@ dependencies:
   - pyproj
   - fiona
   - pathlib
+  - fire
   - pip:
       - detect-secrets  # Optional: secret scanning for commits/CI
 prefix: ./envs
